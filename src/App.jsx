@@ -6,6 +6,7 @@ import Error from "./components/Error";
 import StartScreen from "./components/StartScreen";
 import Question from "./components/Question";
 import NextButton from "./components/NextButton";
+import Progress from "./components/Progress";
 
 const URL = `http://localhost:9456/questions`;
 const STATUS = {
@@ -49,11 +50,14 @@ function reducer(c_state, action) {
             const c_question = c_state.questions.at(c_state.c_qIndex);
             const r_oIndex = c_question.correctOption;
             const s_oIndex = action.payload;
+            const points = c_question.points;
             return {
                 ...c_state,
                 s_oIndex: s_oIndex,
                 points:
-                    s_oIndex === r_oIndex ? c_state.points + 5 : c_state.points,
+                    s_oIndex === r_oIndex
+                        ? c_state.points + points
+                        : c_state.points,
             };
         }
         case "next-question": {
@@ -72,12 +76,12 @@ function reducer(c_state, action) {
 }
 
 function App() {
-    const [{ questions, status, c_qIndex, s_oIndex }, dispatch] = useReducer(
-        reducer,
-        initialState
-    );
-    const numQuestions = questions.length;
+    const [{ questions, status, c_qIndex, s_oIndex, points }, dispatch] =
+        useReducer(reducer, initialState);
     const hasAnswered = s_oIndex !== null;
+    const numQuestions = questions.length;
+    const maxPoints = questions.reduce((acc, q) => acc + q.points, 0);
+    console.log(maxPoints);
 
     useEffect(function () {
         fetch(URL)
@@ -99,11 +103,20 @@ function App() {
                     />
                 )}
                 {status === STATUS.active && (
-                    <Question
-                        question={questions[c_qIndex]}
-                        s_oIndex={s_oIndex}
-                        dispatch={dispatch}
-                    />
+                    <>
+                        <Progress
+                            numQuestions={numQuestions}
+                            c_qIndex={c_qIndex}
+                            points={points}
+                            maxPoints={maxPoints}
+                            hasAnswered={hasAnswered}
+                        />
+                        <Question
+                            question={questions[c_qIndex]}
+                            s_oIndex={s_oIndex}
+                            dispatch={dispatch}
+                        />
+                    </>
                 )}
                 {hasAnswered && <NextButton dispatch={dispatch} />}
             </Main>
