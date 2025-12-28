@@ -4,7 +4,7 @@ import Main from "./components/Main";
 import Loader from "./components/Loader";
 import Error from "./components/Error";
 import StartScreen from "./components/StartScreen";
-import Questions from "./components/Questions";
+import Question from "./components/Question";
 
 const URL = `http://localhost:9456/questions`;
 const STATUS = {
@@ -18,33 +18,63 @@ const STATUS = {
 const initialState = {
     questions: [],
     status: STATUS.loading,
+    c_qIndex: 0, // currentQuestionIndex
+    s_oIndex: null, // selectedOptionIndex
+    points: 0,
 };
 
 function reducer(c_state, action) {
     switch (action.type) {
-        case "data-received":
+        case "data-received": {
             return {
                 ...c_state,
                 questions: action.payload,
                 status: STATUS.ready,
             };
-        case "data-failed":
+        }
+        case "data-failed": {
             return {
                 ...c_state,
                 status: STATUS.error,
             };
-        case "start":
+        }
+        case "start": {
             return {
                 ...c_state,
                 status: STATUS.active,
             };
+        }
+        case "select-option": {
+            const c_question = c_state.questions.at(c_state.c_qIndex);
+            const r_oIndex = c_question.correctOption;
+            const s_oIndex = action.payload;
+            return {
+                ...c_state,
+                s_oIndex: s_oIndex,
+                points:
+                    s_oIndex === r_oIndex ? c_state.points + 5 : c_state.points,
+            };
+        }
+        case "next-question": {
+            return {
+                ...c_state,
+                s_oIndex: null,
+                c_qIndex:
+                    c_state.c_qIndex < c_state.questions.length - 1
+                        ? c_state.c_qIndex + 1
+                        : c_state.c_qIndex,
+            };
+        }
         default:
             throw new Error("Action Unkown");
     }
 }
 
 function App() {
-    const [{ questions, status }, dispatch] = useReducer(reducer, initialState);
+    const [{ questions, status, c_qIndex, s_oIndex }, dispatch] = useReducer(
+        reducer,
+        initialState
+    );
     const numQuestions = questions.length;
 
     useEffect(function () {
@@ -66,7 +96,13 @@ function App() {
                         dispatch={dispatch}
                     />
                 )}
-                {status === STATUS.active && <Questions />}
+                {status === STATUS.active && (
+                    <Question
+                        question={questions[c_qIndex]}
+                        s_oIndex={s_oIndex}
+                        dispatch={dispatch}
+                    />
+                )}
             </Main>
         </div>
     );
