@@ -5,6 +5,7 @@ import Loader from "./components/Loader";
 import Error from "./components/Error";
 import StartScreen from "./components/StartScreen";
 import Question from "./components/Question";
+import NextButton from "./components/NextButton";
 
 const URL = `http://localhost:9456/questions`;
 const STATUS = {
@@ -76,6 +77,7 @@ function App() {
         initialState
     );
     const numQuestions = questions.length;
+    const hasAnswered = s_oIndex !== null;
 
     useEffect(function () {
         fetch(URL)
@@ -103,6 +105,7 @@ function App() {
                         dispatch={dispatch}
                     />
                 )}
+                {hasAnswered && <NextButton dispatch={dispatch} />}
             </Main>
         </div>
     );

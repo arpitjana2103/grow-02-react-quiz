@@ -1,6 +1,6 @@
 function Question({ question, s_oIndex, dispatch }) {
     return (
-        <div>
+        <div className="question">
             <h4>{question.question}</h4>
             <Options
                 question={question}

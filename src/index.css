@@ -144,6 +144,10 @@ progress {
     float: right;
 }
 
+.question {
+    width: 65rem;
+}
+
 .options {
     display: flex;
     flex-direction: column;
