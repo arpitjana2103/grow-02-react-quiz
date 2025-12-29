@@ -77,10 +77,18 @@ function reducer(c_state, action) {
             const maxScore = Math.max(c_state.points, c_state.highscore);
             return {
                 ...c_state,
-                c_qIndex: 0,
-                s_oIndex: null,
                 status: STATUS.finished,
                 highscore: maxScore,
+            };
+        }
+
+        case "restart": {
+            return {
+                ...c_state,
+                points: 0,
+                c_qIndex: 0,
+                s_oIndex: null,
+                status: STATUS.ready,
             };
         }
         default:
@@ -151,6 +159,7 @@ function App() {
                         points={points}
                         maxPoints={maxPoints}
                         highscore={highscore}
+                        dispatch={dispatch}
                     />
                 )}
             </Main>
