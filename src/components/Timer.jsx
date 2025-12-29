@@ -1,8 +1,15 @@
 import { useEffect } from "react";
 
+function formatTime(totalSeconds) {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    const mm = String(m).padStart(2, "0");
+    const ss = String(s).padStart(2, "0");
+
+    return `${mm}:${ss}`;
+}
+
 function Timer({ remainingSeconds, dispatch }) {
-    const minutes = Math.floor(remainingSeconds / 60);
-    const seconds = remainingSeconds % 60;
     useEffect(
         function () {
             const id = setInterval(function () {
@@ -14,12 +21,7 @@ function Timer({ remainingSeconds, dispatch }) {
         },
         [dispatch]
     );
-    return (
-        <div className="timer">
-            {String(minutes).padStart(2, "0")}:
-            {String(seconds).padStart(2, "0")}
-        </div>
-    );
+    return <div className="timer">{formatTime(remainingSeconds)}</div>;
 }
 
 export default Timer;
