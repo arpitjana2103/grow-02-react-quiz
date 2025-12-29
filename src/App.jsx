@@ -7,6 +7,7 @@ import StartScreen from "./components/StartScreen";
 import Question from "./components/Question";
 import NextButton from "./components/NextButton";
 import Progress from "./components/Progress";
+import FinishScreen from "./components/FinishScreen";
 
 const URL = `http://localhost:9456/questions`;
 const STATUS = {
@@ -23,6 +24,7 @@ const initialState = {
     c_qIndex: 0, // currentQuestionIndex
     s_oIndex: null, // selectedOptionIndex
     points: 0,
+    highscore: 0,
 };
 
 function reducer(c_state, action) {
@@ -70,18 +72,31 @@ function reducer(c_state, action) {
                         : c_state.c_qIndex,
             };
         }
+
+        case "finish": {
+            const maxScore = Math.max(c_state.points, c_state.highscore);
+            return {
+                ...c_state,
+                c_qIndex: 0,
+                s_oIndex: null,
+                status: STATUS.finished,
+                highscore: maxScore,
+            };
+        }
         default:
             throw new Error("Action Unkown");
     }
 }
 
 function App() {
-    const [{ questions, status, c_qIndex, s_oIndex, points }, dispatch] =
-        useReducer(reducer, initialState);
+    const [
+        { questions, status, c_qIndex, s_oIndex, points, highscore },
+        dispatch,
+    ] = useReducer(reducer, initialState);
     const hasAnswered = s_oIndex !== null;
     const numQuestions = questions.length;
     const maxPoints = questions.reduce((acc, q) => acc + q.points, 0);
-    console.log(maxPoints);
+    const isLastQuestion = c_qIndex === numQuestions - 1;
 
     useEffect(function () {
         fetch(URL)
@@ -116,9 +131,28 @@ function App() {
                             s_oIndex={s_oIndex}
                             dispatch={dispatch}
                         />
+                        {hasAnswered && (
+                            <NextButton
+                                onNext={
+                                    isLastQuestion
+                                        ? () => dispatch({ type: "finish" })
+                                        : () =>
+                                              dispatch({
+                                                  type: "next-question",
+                                              })
+                                }
+                            />
+                        )}
                     </>
                 )}
-                {hasAnswered && <NextButton dispatch={dispatch} />}
+
+                {status === STATUS.finished && (
+                    <FinishScreen
+                        points={points}
+                        maxPoints={maxPoints}
+                        highscore={highscore}
+                    />
+                )}
             </Main>
         </div>
     );
