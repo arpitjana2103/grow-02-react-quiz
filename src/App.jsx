@@ -8,6 +8,8 @@ import Question from "./components/Question";
 import NextButton from "./components/NextButton";
 import Progress from "./components/Progress";
 import FinishScreen from "./components/FinishScreen";
+import Footer from "./components/Footer";
+import Timer from "./components/Timer";
 
 const URL = `http://localhost:9456/questions`;
 const STATUS = {
@@ -25,9 +27,12 @@ const initialState = {
     s_oIndex: null, // selectedOptionIndex
     points: 0,
     highscore: 0,
+    remainingSeconds: 0,
 };
 
 function reducer(c_state, action) {
+    const totalTime = c_state.questions.length * 5;
+    const maxScore = Math.max(c_state.points, c_state.highscore);
     switch (action.type) {
         case "data-received": {
             return {
@@ -46,6 +51,7 @@ function reducer(c_state, action) {
             return {
                 ...c_state,
                 status: STATUS.active,
+                remainingSeconds: totalTime,
             };
         }
         case "select-option": {
@@ -74,7 +80,6 @@ function reducer(c_state, action) {
         }
 
         case "finish": {
-            const maxScore = Math.max(c_state.points, c_state.highscore);
             return {
                 ...c_state,
                 status: STATUS.finished,
@@ -89,8 +94,21 @@ function reducer(c_state, action) {
                 c_qIndex: 0,
                 s_oIndex: null,
                 status: STATUS.ready,
+                remainingSeconds: totalTime,
             };
         }
+
+        case "tick":
+            const timeLeft = Math.max(c_state.remainingSeconds - 1, 0);
+            const isFinished = timeLeft === 0;
+
+            return {
+                ...c_state,
+                remainingSeconds: timeLeft,
+                status: isFinished ? STATUS.finished : STATUS.active,
+                highscore: maxScore,
+            };
+
         default:
             throw new Error("Action Unkown");
     }
@@ -98,7 +116,15 @@ function reducer(c_state, action) {
 
 function App() {
     const [
-        { questions, status, c_qIndex, s_oIndex, points, highscore },
+        {
+            questions,
+            status,
+            c_qIndex,
+            s_oIndex,
+            points,
+            highscore,
+            remainingSeconds,
+        },
         dispatch,
     ] = useReducer(reducer, initialState);
     const hasAnswered = s_oIndex !== null;
@@ -139,18 +165,24 @@ function App() {
                             s_oIndex={s_oIndex}
                             dispatch={dispatch}
                         />
-                        {hasAnswered && (
-                            <NextButton
-                                onNext={
-                                    isLastQuestion
-                                        ? () => dispatch({ type: "finish" })
-                                        : () =>
-                                              dispatch({
-                                                  type: "next-question",
-                                              })
-                                }
+                        <Footer>
+                            <Timer
+                                remainingSeconds={remainingSeconds}
+                                dispatch={dispatch}
                             />
-                        )}
+                            {hasAnswered && (
+                                <NextButton
+                                    onNext={
+                                        isLastQuestion
+                                            ? () => dispatch({ type: "finish" })
+                                            : () =>
+                                                  dispatch({
+                                                      type: "next-question",
+                                                  })
+                                    }
+                                />
+                            )}
+                        </Footer>
                     </>
                 )}
 
